@@ -1,3 +1,9 @@
+![Static Badge](https://img.shields.io/badge/coverage-87.3%25-green?link=https%3A%2F%2Fgithub.com%2Fgrupo-sbf%2FDoSo%2Ftree%2Fmain%2Fcoverage)
+![Static Badge](https://img.shields.io/badge/version-v1.0.0-blue)
+![Static Badge](https://img.shields.io/badge/License-MIT-blue)
+
+
+
 # DoSo: Simple and Elegant Error and State Handling
 
 **DoSo** is a lightweight Dart library designed to simplify and streamline state and error handling in Flutter applications. Built to reduce boilerplate and avoid code generation, DoSo provides a functional and expressive API for managing synchronous and asynchronous operations.
@@ -37,8 +43,8 @@ This helps encapsulate logic and improves error management across your app.
 ```dart
 Do.initial();       // Represents the initial state
 Do.loading();       // Represents a loading state
-Do.success(value);  // Represents a success with the associated value
-Do.failure();       // Represents a failure with optional exception and stack trace
+Do.success(value);  // Represents a success with the associated value [S]
+Do.failure();       // Represents a failure with optional failure [F]
 ```
 
 ---
@@ -58,15 +64,15 @@ final value = Do.success(42).getOrElse(0); // 42
 Transforms the success value into another value.
 
 ```dart
-final result = Do.success(42).map((v) => v.toString()); // Do<String>.success('42')
+final result = Do.success(42).map((value) => value.toString()); // Do<String>.success('42')
 ```
 
-### `flatMap<T>(Do<T> Function(S value))`
+### `flatMap<T>(Do<T, F> Function(S value))`
 
 Maps to another `Do` state.
 
 ```dart
-final result = Do.success(42).flatMap((v) => Do.success(v.toString()));
+final result = Do.success(42).flatMap((value) => Do.success(value.toString()));
 ```
 
 ### `fold<T>`
@@ -75,8 +81,8 @@ Combines all state branches into a single result.
 
 ```dart
 final message = Do.success(42).fold(
-  onFailure: (e, s) => 'Error: $e',
-  onSuccess: (v) => 'Success: $v',
+  onFailure: (failure) => 'Error: $failure',
+  onSuccess: (value) => 'Success: $value',
 );
 ```
 
@@ -88,8 +94,8 @@ Executes based on the current state.
 final output = result.when(
   onInitial: () => 'Initial',
   onLoading: () => 'Loading...',
-  onSuccess: (v) => 'Success: $v',
-  onFailure: (e, s) => 'Failure: $e',
+  onSuccess: (value) => 'Success: $value',
+  onFailure: (failure) => 'Failure: $failure',
 );
 ```
 
@@ -100,7 +106,8 @@ Wraps synchronous/async calls in a `Do`, automatically catching exceptions.
 ```dart
 final result = await Do.tryCatch(
   onTry: () async => 42,
-  onCatch: (e, s) => Exception('Handled: $e'),
+  onCatch: (exception, stackTrace) => Exception('Handled: $exception and $stackTrace'),
+  onFinally: () => print('Done'),
 );
 ```
 
@@ -111,13 +118,13 @@ final result = await Do.tryCatch(
 ### ✅ Data Source
 
 ```dart
-So<int> getOk() => Do.tryCatch(onTry: () => http.get('/ok'));
+So<Exception, int> getOk() => Do.tryCatch(onTry: () => http.get('/ok'));
 ```
 
 ### ✅ Repository
 
 ```dart
-So<String> getOk() async {
+So<Exception, String> getOk() async {
   final result = await dataSource.getOk();
   return result.map((code) => code.toString());
 }
@@ -126,7 +133,7 @@ So<String> getOk() async {
 ### ✅ Cubit
 
 ```dart
-class MyCubit extends Cubit<Do<String>> {
+class MyCubit extends Cubit<Do<Exception, String>> {
   MyCubit(this.repo) : super(Do.initial());
   
   final Repository repo;
@@ -136,8 +143,8 @@ class MyCubit extends Cubit<Do<String>> {
     
     final result = await repo.getOk();
     result.fold(
-      onFailure: (e, _) => emit(Do.failure(e)),
-      onSuccess: (v) => emit(Do.success('Success: $v')),
+      onFailure: (failure) => emit(Do.failure(failure)),
+      onSuccess: (value) => emit(Do.success('Success: $value')),
     );
   }
 }
@@ -146,12 +153,12 @@ class MyCubit extends Cubit<Do<String>> {
 ### ✅ UI
 
 ```dart
-BlocBuilder<MyCubit, Do<String>>(
+BlocBuilder<MyCubit, Do<Exception, String>>(
   builder: (context, state) => state.when(
     onInitial: () => Text('Initial'),
     onLoading: () => CircularProgressIndicator(),
     onSuccess: (value) => Text(value),
-    onFailure: (e, _) => Text(e.toString()),
+    onFailure: (failure) => Text(failure.toString()),
   ),
 )
 ```
