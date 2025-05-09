@@ -1,6 +1,6 @@
 import 'package:doso/doso.dart';
-import 'package:example/domain/custom_exception.dart';
 
+import '../domain/customs_failure.dart';
 import '../domain/repository.dart';
 import 'data_source.dart';
 
@@ -10,26 +10,22 @@ class RepositoryImpl implements Repository {
   final DataSource dataSource;
 
   @override
-  So<String> getOk() async {
+  So<NetworkFailure, String> getOk() async {
     final result = await dataSource.getOk();
-    return result.map((statusCode) => statusCode.toString());
+    return result.map((data) => data.toString());
   }
 
   @override
-  So<String> getNotFound() async {
+  So<NetworkFailure, String> getNotFound() async {
     final result = await dataSource.getNotFound();
     return result.flatMap(
-      (statusCode) => Do.failure(
-        CustomException(
-          'Ops! Not found the resource',
-        ),
-      ),
+      (_) => Do.failure(NotFoundFailure()),
     );
   }
 
   @override
-  So<String> getError() async {
+  So<NetworkFailure, String> getError() async {
     final result = await dataSource.getInternalServerError();
-    return result.map((statusCode) => statusCode.toString());
+    return result.map((data) => data.toString());
   }
 }

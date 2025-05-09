@@ -3,17 +3,14 @@ import 'dart:async';
 import 'impl/do_handler.dart';
 import 'so.dart';
 
-abstract interface class Do<S> {
-  const factory Do.initial() = Initial<S>;
+abstract interface class Do<F, S> {
+  const factory Do.initial() = Initial<F, S>;
 
-  const factory Do.loading() = Loading<S>;
+  const factory Do.loading() = Loading<F, S>;
 
-  const factory Do.success(S value) = Success<S>;
+  const factory Do.success(S value) = Success<F, S>;
 
-  const factory Do.failure([
-    Exception? exception,
-    StackTrace? stackTrace,
-  ]) = Failure<S>;
+  const factory Do.failure([F failure]) = Failure<F, S>;
 
   bool get isInitial;
 
@@ -49,7 +46,7 @@ abstract interface class Do<S> {
   /// final mappedResult = result.map((value) => value.toString());
   /// print(mappedResult); // Output: Do<String>.success('42')
   /// ```
-  So<T> map<T>(T Function(S value) mapper);
+  So<F, T> map<T>(T Function(S value) mapper);
 
   /// Maps the [Do] object to another type [T] using the provided [mapper]
   /// function.
@@ -65,13 +62,13 @@ abstract interface class Do<S> {
   /// );
   /// print(mappedResult); // Output: Do<String>.success('42')
   /// ```
-  So<T> flatMap<T>(Do<T> Function(S value) mapper);
+  So<F, T> flatMap<T>(Do<F, T> Function(S value) mapper);
 
   /// Folds the [Do] object into a single value based on its state.
   ///
   /// This method takes two functions as parameters:
   /// - [onFailure]: A function to handle the failure state, which takes an
-  /// exception of type [Exception] and [StackTrace] as a parameter.
+  /// value of type [F] as a parameter.
   /// - [onSuccess]: A function to handle the success state, which takes a
   /// value of type [S] as a parameter.
   ///
@@ -81,11 +78,11 @@ abstract interface class Do<S> {
   /// Example usage:
   /// ```dart
   /// final message = result.fold(
-  ///   onFailure: (exception, stackTrace) => 'Failure: $exception',
+  ///   onFailure: (failure) => 'Failure: failure',
   ///   onSuccess: (success) => 'Success: $success',
   /// );
   T fold<T>({
-    required T Function(Exception? exception, StackTrace? stackTrace) onFailure,
+    required T Function(F failure) onFailure,
     required T Function(S value) onSuccess,
   });
 
@@ -100,7 +97,7 @@ abstract interface class Do<S> {
   /// - [onSuccess]: A function to handle the success state, which takes a
   ///   value of type [S] as a parameter.
   /// - [onFailure]: A function to handle the failure state, which takes an
-  ///   exception of type [Exception] and [StackTrace] as a parameter.
+  ///   value of type [F] as a parameter.
   ///
   /// The [when] method returns a value of type [T], which is determined by
   /// the provided functions.
@@ -113,7 +110,7 @@ abstract interface class Do<S> {
   ///   // Simulate some async operation
   ///   final result = await repository.getData();
   ///   return result.fold(
-  ///     onFailure: (exception, stackTrace) => const Do.failure(exception),
+  ///     onFailure: (failure) => const Do.failure(failure),
   ///     onSuccess: (data) => const Do.success(data),
   ///   );
   /// }
@@ -122,13 +119,13 @@ abstract interface class Do<S> {
   ///   onInitial: () => 'Initial state',
   ///   onLoading: () => 'Loading...',
   ///   onSuccess: (value) => 'Success: $value',
-  ///   onFailure: (exception, stackTrace) => 'Failure: $exception',
+  ///   onFailure: (failure) => 'Failure: failure',
   /// );
   T when<T>({
     T Function()? onInitial,
     required T Function() onLoading,
     required T Function(S value) onSuccess,
-    required T Function(Exception? exception, StackTrace? stackTrace) onFailure,
+    required T Function(F failure) onFailure,
   });
 
   /// Executes the [onTry] function and returns a [So] if is a [Do] object.
@@ -140,6 +137,9 @@ abstract interface class Do<S> {
   ///
   /// The [onCatch] function can be used to handle the exception and return a
   /// custom exception.
+  ///
+  /// The [onFinally] function is called after the [onTry] function
+  /// completes, regardless of whether it was successful or not.
   ///
   /// This method is useful for wrapping operations in a
   /// [Do] object, allowing for better error handling and
@@ -156,21 +156,33 @@ abstract interface class Do<S> {
   ///     // Handle the exception and return a custom exception
   ///     return CustomException('An error occurred: $exception');
   ///   },
+  ///   onFinally: () {
+  ///     // Perform any cleanup or finalization
+  ///   },
   ///  );
   /// ```
-  static So<S> tryCatch<S>({
+  static So<F, S> tryCatch<F, S>({
     required FutureOr<S> Function() onTry,
-    Exception Function(Exception exception, StackTrace? stackTrace)? onCatch,
+    F Function(Exception exception, StackTrace stackTrace)? onCatch,
+    void Function()? onFinally,
   }) async {
     try {
       final result = await onTry();
       return Do.success(result);
-    } on Exception catch (exception, stackTrace) {
+    } on Exception catch (e, s) {
       if (onCatch == null) {
-        return Do.failure(exception, stackTrace);
+        return Do.failure(e as F);
       }
 
-      return Do.failure(onCatch(exception, stackTrace), stackTrace);
+      return Do.failure(onCatch(e, s));
+    } catch (e, s) {
+      if (onCatch == null) {
+        return Do.failure(e as F);
+      }
+
+      return Do.failure(onCatch(Exception(e.toString()), s));
+    } finally {
+      onFinally?.call();
     }
   }
 }

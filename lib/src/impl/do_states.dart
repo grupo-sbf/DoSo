@@ -1,20 +1,20 @@
 part of 'do_handler.dart';
 
-final class Initial<S> extends DoHandler<S> {
+final class Initial<F, S> extends DoHandler<F, S> {
   const Initial();
 
   @override
   List<Object?> get props => [];
 }
 
-final class Loading<S> extends DoHandler<S> {
+final class Loading<F, S> extends DoHandler<F, S> {
   const Loading();
 
   @override
   List<Object?> get props => [];
 }
 
-final class Success<S> extends DoHandler<S> {
+final class Success<F, S> extends DoHandler<F, S> {
   const Success(this._value);
 
   @override
@@ -24,15 +24,12 @@ final class Success<S> extends DoHandler<S> {
   List<Object?> get props => [_value];
 }
 
-final class Failure<S> extends DoHandler<S> {
-  const Failure([this._exception, this._stackTrace]);
+final class Failure<F, S> extends DoHandler<F, S> {
+  const Failure([this._failure]);
 
   @override
-  final Exception? _exception;
+  final F? _failure;
 
   @override
-  final StackTrace? _stackTrace;
-
-  @override
-  List<Object?> get props => [_exception, _stackTrace];
+  List<Object?> get props => [_failure];
 }

@@ -1,9 +1,11 @@
 import 'package:doso/doso.dart';
 
+import '../domain/customs_failure.dart';
+
 abstract interface class DataSource {
-  So<int> getOk();
+  So<NetworkFailure, int> getOk();
 
-  So<int> getNotFound();
+  So<NetworkFailure, int> getNotFound();
 
-  So<int> getInternalServerError();
+  So<NetworkFailure, int> getInternalServerError();
 }

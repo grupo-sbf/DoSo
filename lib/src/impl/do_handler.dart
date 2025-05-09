@@ -5,58 +5,48 @@ import 'do_exception.dart';
 
 part 'do_states.dart';
 
-sealed class DoHandler<S> extends Equatable implements Do<S> {
+sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
   const DoHandler();
 
   S? get _value => null;
 
-  Exception? get _exception => null;
-
-  StackTrace? get _stackTrace => null;
+  F? get _failure => null;
 
   @override
-  bool get isInitial => this is Initial<S>;
+  bool get isInitial => this is Initial;
 
   @override
-  bool get isLoading => this is Loading<S>;
+  bool get isLoading => this is Loading;
 
   @override
-  bool get isSuccess => this is Success<S>;
+  bool get isSuccess => this is Success;
 
   @override
-  bool get isFailure => this is Failure<S>;
+  bool get isFailure => this is Failure;
 
   @override
   S getOrElse(S defaultValue) => _value ?? defaultValue;
 
   @override
-  Do<T> map<T>(T Function(S value) mapper) => switch (this) {
-        Success() => Do.success(mapper(_value as S)),
-        Failure() => Do.failure(_exception, _stackTrace),
-        _ => throw DoException(
-            type: DoExceptionType.invalidState,
-            message: 'Invalid state: $this. Expected Do.success or Do.failure',
-          ),
-      };
+  Do<F, T> map<T>(T Function(S value) mapper) => fold(
+        onFailure: (failure) => Do.failure(failure),
+        onSuccess: (value) => Do.success(mapper(value)),
+      );
 
   @override
-  Do<T> flatMap<T>(Do<T> Function(S value) mapper) => switch (this) {
-        Success() => mapper(_value as S),
-        Failure() => Do.failure(_exception, _stackTrace),
-        _ => throw DoException(
-            type: DoExceptionType.invalidState,
-            message: 'Invalid state: $this. Expected Do.success or Do.failure',
-          ),
-      };
+  Do<F, T> flatMap<T>(Do<F, T> Function(S value) mapper) => fold(
+        onFailure: (failure) => Do.failure(failure),
+        onSuccess: (value) => mapper(value),
+      );
 
   @override
   T fold<T>({
-    required T Function(Exception? exception, StackTrace? stackTrace) onFailure,
+    required T Function(F failure) onFailure,
     required T Function(S value) onSuccess,
   }) =>
       switch (this) {
         Success() => onSuccess(_value as S),
-        Failure() => onFailure(_exception, _stackTrace),
+        Failure() => onFailure(_failure as F),
         _ => throw DoException(
             type: DoExceptionType.invalidState,
             message: 'Invalid state: $this. Expected Do.success or Do.failure',
@@ -68,12 +58,12 @@ sealed class DoHandler<S> extends Equatable implements Do<S> {
     T Function()? onInitial,
     required T Function() onLoading,
     required T Function(S value) onSuccess,
-    required T Function(Exception? exception, StackTrace? stackTrace) onFailure,
+    required T Function(F failure) onFailure,
   }) =>
       switch (this) {
         Initial() => onInitial?.call() ?? () {} as T,
         Loading() => onLoading(),
         Success() => onSuccess(_value as S),
-        Failure() => onFailure(_exception, _stackTrace),
+        Failure() => onFailure(_failure as F),
       };
 }

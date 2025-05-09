@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('states', () {
     test('Should return true for Initial state and false for others', () {
-      const handler = Initial<int>();
+      const handler = Initial<Exception, int>();
 
       expect(handler.isInitial, isTrue);
       expect(handler.isLoading, isFalse);
@@ -13,7 +13,7 @@ void main() {
     });
 
     test('Should return true for Loading state and false for others', () {
-      const handler = Loading<int>();
+      const handler = Loading<Exception, int>();
 
       expect(handler.isInitial, isFalse);
       expect(handler.isLoading, isTrue);
@@ -23,7 +23,7 @@ void main() {
 
     test('Should return true for Success state with value and false for others',
         () {
-      const handler = Success<int>(42);
+      const handler = Success<Exception, int>(42);
 
       expect(handler.getOrElse(0), equals(42));
       expect(handler.isInitial, isFalse);
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('Success state should handle default value if null', () {
-      const handler = Success<int?>(null);
+      const handler = Success<Exception, int?>(null);
 
       expect(handler.getOrElse(0), 0);
       expect(handler.isInitial, isFalse);
@@ -45,8 +45,7 @@ void main() {
     test('Failure state should return the correct exception and stackTrace',
         () {
       final exceptionThrown = Exception('Test exception');
-      final stackTraceThrown = StackTrace.current;
-      final handler = Failure<int>(exceptionThrown, stackTraceThrown);
+      final handler = Failure<Exception, int>(exceptionThrown);
 
       expect(handler.getOrElse(0), 0);
       expect(handler.isInitial, isFalse);
@@ -54,34 +53,13 @@ void main() {
       expect(handler.isSuccess, isFalse);
       expect(handler.isFailure, isTrue);
       handler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, equals(exceptionThrown));
-          expect(stackTrace, equals(stackTraceThrown));
-        },
-        onSuccess: (_) => fail('Expected failure, but got success'),
-      );
-    });
-
-    test('Failure state should handle null stackTrace correctly', () {
-      final exceptionThrown = Exception('Test exception');
-      final handler = Failure<int>(exceptionThrown);
-
-      expect(handler.getOrElse(0), 0);
-      expect(handler.isInitial, isFalse);
-      expect(handler.isLoading, isFalse);
-      expect(handler.isSuccess, isFalse);
-      expect(handler.isFailure, isTrue);
-      handler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, equals(exceptionThrown));
-          expect(stackTrace, equals(isNull));
-        },
+        onFailure: (failure) => expect(failure, equals(exceptionThrown)),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
 
     test('Failure state should handle null exception and stackTrace', () {
-      const handler = Failure<int>();
+      const handler = Failure<Exception?, int>();
 
       expect(handler.getOrElse(0), 0);
       expect(handler.isInitial, isFalse);
@@ -89,10 +67,7 @@ void main() {
       expect(handler.isSuccess, isFalse);
       expect(handler.isFailure, isTrue);
       handler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, equals(isNull));
-          expect(stackTrace, equals(isNull));
-        },
+        onFailure: (failure) => expect(failure, isNull),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
@@ -102,15 +77,15 @@ void main() {
     test(
         'getOrElse should return the value if Success or the default value otherwise',
         () async {
-      const successHandler = Success<int>(42);
-      const failureHandler = Failure<int>();
+      const successHandler = Success<Exception, int>(42);
+      const failureHandler = Failure<Exception, int>();
 
       expect(successHandler.getOrElse(0), equals(42));
       expect(failureHandler.getOrElse(0), equals(0));
     });
 
     test('getOrElse should return null when default value is null', () async {
-      const handler = Failure<int?>();
+      const handler = Failure<Exception, int?>();
       final result = handler.getOrElse(null);
 
       expect(result, isNull);
@@ -120,7 +95,9 @@ void main() {
   group('map', () {
     test('map should transform the value in Success and propagate Failure', () {
       const successHandler = Success(42);
-      final failureHandler = Failure<int>(Exception('Test exception'));
+      final failureHandler = Failure<Exception, int>(
+        Exception('Test exception'),
+      );
 
       final mappedSuccess = successHandler.map((value) => value.toString());
       final mappedFailure = failureHandler.map((value) => value.toString());
@@ -129,24 +106,21 @@ void main() {
 
       expect(mappedFailure.isFailure, isTrue);
       mappedFailure.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, isNotNull);
-          expect(stackTrace, isNull);
-        },
+        onFailure: (failure) => expect(failure, isNotNull),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
 
     test('map should handle Success with null return value', () {
-      const handler = Success<int>(42);
+      const handler = Success<Exception, int>(42);
       final mappedHandler = handler.map((value) => null);
 
-      expect(mappedHandler, isA<Success<void>>());
+      expect(mappedHandler, isA<Success<Exception, void>>());
     });
 
     test('map should throw exception for Initial or Loading states', () {
-      const initialHandler = Initial<int>();
-      const loadingHandler = Loading<int>();
+      const initialHandler = Initial<Exception, int>();
+      const loadingHandler = Loading<Exception, int>();
 
       expect(
         () => initialHandler.map((value) => value.toString()),
@@ -164,10 +138,10 @@ void main() {
     test(
         'flatMap should transform the value in Success and return a new Do state',
         () {
-      const successHandler = Success<int>(42);
+      const successHandler = Success<Exception, int>(42);
 
       final flatMappedHandler = successHandler.flatMap(
-        (value) => Success<String>('Value: $value'),
+        (value) => Success<Exception, String>('Value: $value'),
       );
 
       expect(flatMappedHandler.isSuccess, isTrue);
@@ -175,118 +149,117 @@ void main() {
     });
 
     test('flatMap should propagate Failure without applying the mapper', () {
-      final failureHandler = Failure<int>(Exception('Test exception'));
+      final failureHandler = Failure<Exception, int>(
+        Exception('Test exception'),
+      );
 
       final flatMappedHandler = failureHandler.flatMap(
-        (value) => Success<String>('Value: $value'),
+        (value) => Success<Exception, String>('Value: $value'),
       );
 
       expect(flatMappedHandler.isFailure, isTrue);
       flatMappedHandler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, isNotNull);
-          expect(stackTrace, isNull);
-        },
+        onFailure: (failure) => expect(failure, isNotNull),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
 
     test('flatMap should throw an exception for Initial or Loading states', () {
-      const initialHandler = Initial<int>();
-      const loadingHandler = Loading<int>();
+      const initialHandler = Initial<Exception, int>();
+      const loadingHandler = Loading<Exception, int>();
 
       expect(
-        () =>
-            initialHandler.flatMap((value) => Success<String>('Value: $value')),
+        () => initialHandler.flatMap(
+          (value) => Success<Exception, String>('Value: $value'),
+        ),
         throwsException,
       );
 
       expect(
-        () =>
-            loadingHandler.flatMap((value) => Success<String>('Value: $value')),
+        () => loadingHandler.flatMap(
+          (value) => Success<Exception, String>('Value: $value'),
+        ),
         throwsException,
       );
     });
 
     test('flatMap should handle Success with a null value', () {
-      const handler = Success<int?>(null);
+      const handler = Success<Exception, int?>(null);
 
       final flatMappedHandler = handler.flatMap(
-        (value) => Success<String>('Value: $value'),
+        (value) => Success<Exception, String>('Value: $value'),
       );
 
       expect(flatMappedHandler.isSuccess, isTrue);
       expect(flatMappedHandler.getOrElse('failure'), equals('Value: null'));
     });
 
-    test('flatMap should propagate Failure with a stackTrace', () {
+    test('flatMap should propagate Failure', () {
       final exceptionThrown = Exception('Test exception');
-      final stackTraceThrown = StackTrace.current;
-      final failureHandler = Failure<int>(exceptionThrown, stackTraceThrown);
+      final failureHandler = Failure<Exception, int>(exceptionThrown);
 
       final flatMappedHandler = failureHandler.flatMap(
-        (value) => Success<String>('Value: $value'),
+        (value) => Success<Exception, String>('Value: $value'),
       );
 
       expect(flatMappedHandler.isFailure, isTrue);
       flatMappedHandler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, equals(exceptionThrown));
-          expect(stackTrace, equals(stackTraceThrown));
-        },
+        onFailure: (failure) => expect(failure, equals(exceptionThrown)),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
 
     test('flatMap should handle Success with a mapper returning Failure', () {
-      const successHandler = Success<int>(42);
+      const successHandler = Success<Exception, int>(42);
 
       final flatMappedHandler = successHandler.flatMap(
-        (value) => Failure<String>(Exception('Mapped failure')),
+        (value) => Failure<Exception, String>(Exception('Mapped failure')),
       );
 
       expect(flatMappedHandler.isFailure, isTrue);
       flatMappedHandler.fold(
-        onFailure: (exception, stackTrace) {
-          expect(exception, isA<Exception>());
-          expect(exception.toString(), contains('Mapped failure'));
+        onFailure: (failure) {
+          expect(failure, isA<Exception>());
+          expect(failure.toString(), contains('Mapped failure'));
         },
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
 
     test('flatMap should handle Success with a mapper returning Initial', () {
-      const successHandler = Success<int>(42);
+      const successHandler = Success<Exception, int>(42);
 
       final flatMappedHandler = successHandler.flatMap(
-        (value) => const Initial<String>(),
+        (value) => const Initial<Exception, String>(),
       );
 
-      expect(flatMappedHandler, isA<Initial<String>>());
+      expect(flatMappedHandler, isA<Initial<Exception, String>>());
     });
 
     test('flatMap should handle Success with a mapper returning Loading', () {
-      const successHandler = Success<int>(42);
+      const successHandler = Success<Exception, int>(42);
 
       final flatMappedHandler = successHandler.flatMap(
-        (value) => const Loading<String>(),
+        (value) => const Loading<Exception, String>(),
       );
 
-      expect(flatMappedHandler, isA<Loading<String>>());
+      expect(flatMappedHandler, isA<Loading<Exception, String>>());
     });
   });
 
   group('fold', () {
     test('fold should execute the correct callback based on the state', () {
-      const successHandler = Success<int>(42);
-      final failureHandler = Failure<int>(Exception('Test exception'));
+      const successHandler = Success<Exception, int>(42);
+      final failureHandler = Failure<Exception, int>(
+        Exception('Test exception'),
+      );
 
       final successResult = successHandler.fold(
-        onFailure: (exception, _) => 'Failure: $exception',
+        onFailure: (failure) => 'Failure: $failure',
         onSuccess: (value) => 'Success: $value',
       );
       final failureResult = failureHandler.fold(
-        onFailure: (exception, _) => 'Failure: $exception',
+        onFailure: (failure) => 'Failure: $failure',
         onSuccess: (value) => 'Success',
       );
 
@@ -295,10 +268,10 @@ void main() {
     });
 
     test('fold should transform Success value to a different type', () {
-      const handler = Success<int>(42);
+      const handler = Success<Exception, int>(42);
 
       final result = handler.fold(
-        onFailure: (exception, _) => 'Failure',
+        onFailure: (failure) => 'Failure',
         onSuccess: (value) => 'Value: $value',
       );
 
@@ -306,12 +279,12 @@ void main() {
     });
 
     test('fold should throw exception for Initial or Loading states', () {
-      const initialHandler = Initial<int>();
-      const loadingHandler = Loading<int>();
+      const initialHandler = Initial<Exception, int>();
+      const loadingHandler = Loading<Exception, int>();
 
       expect(
         () => initialHandler.fold(
-          onFailure: (exception, _) => 'Failure',
+          onFailure: (failure) => 'Failure',
           onSuccess: (value) => 'Success',
         ),
         throwsException,
@@ -319,7 +292,7 @@ void main() {
 
       expect(
         () => loadingHandler.fold(
-          onFailure: (exception, _) => 'Failure',
+          onFailure: (failure) => 'Failure',
           onSuccess: (value) => 'Success',
         ),
         throwsException,
@@ -329,34 +302,36 @@ void main() {
 
   group('when', () {
     test('when should execute the correct callback based on the state', () {
-      const initialHandler = Initial<int>();
-      const loadingHandler = Loading<int>();
-      const successHandler = Success<int>(42);
-      final failureHandler = Failure<int>(Exception('Test exception'));
+      const initialHandler = Initial<Exception, int>();
+      const loadingHandler = Loading<Exception, int>();
+      const successHandler = Success<Exception, int>(42);
+      final failureHandler = Failure<Exception, int>(
+        Exception('Test exception'),
+      );
 
       final initialResult = initialHandler.when(
         onInitial: () => 'Initial',
         onLoading: () => 'Loading',
         onSuccess: (value) => 'Success: $value',
-        onFailure: (exception, _) => 'Failure',
+        onFailure: (failure) => 'Failure',
       );
       final loadingResult = loadingHandler.when(
         onInitial: () => 'Initial',
         onLoading: () => 'Loading',
         onSuccess: (value) => 'Success: $value',
-        onFailure: (exception, _) => 'Failure',
+        onFailure: (failure) => 'Failure',
       );
       final successResult = successHandler.when(
         onInitial: () => 'Initial',
         onLoading: () => 'Loading',
         onSuccess: (value) => 'Success: $value',
-        onFailure: (exception, _) => 'Failure',
+        onFailure: (failure) => 'Failure',
       );
       final failureResult = failureHandler.when(
         onInitial: () => 'Initial',
         onLoading: () => 'Loading',
         onSuccess: (value) => 'Success: $value',
-        onFailure: (exception, _) => 'Failure: $exception',
+        onFailure: (failure) => 'Failure: $failure',
       );
 
       expect(initialResult, equals('Initial'));
@@ -366,17 +341,19 @@ void main() {
     });
 
     test('when should execute the correct callback for all states', () {
-      const initialHandler = Initial<int>();
-      const loadingHandler = Loading<int>();
-      const successHandler = Success<int>(42);
-      final failureHandler = Failure<int>(Exception('Test exception'));
+      const initialHandler = Initial<Exception, int>();
+      const loadingHandler = Loading<Exception, int>();
+      const successHandler = Success<Exception, int>(42);
+      final failureHandler = Failure<Exception, int>(
+        Exception('Test exception'),
+      );
 
       expect(
         initialHandler.when(
           onInitial: () => 'Initial',
           onLoading: () => 'Loading',
           onSuccess: (value) => 'Success: $value',
-          onFailure: (exception, _) => 'Failure',
+          onFailure: (failure) => 'Failure',
         ),
         equals('Initial'),
       );
@@ -386,7 +363,7 @@ void main() {
           onInitial: () => 'Initial',
           onLoading: () => 'Loading',
           onSuccess: (value) => 'Success: $value',
-          onFailure: (exception, _) => 'Failure',
+          onFailure: (failure) => 'Failure',
         ),
         equals('Loading'),
       );
@@ -396,7 +373,7 @@ void main() {
           onInitial: () => 'Initial',
           onLoading: () => 'Loading',
           onSuccess: (value) => 'Success: $value',
-          onFailure: (exception, _) => 'Failure',
+          onFailure: (failure) => 'Failure',
         ),
         equals('Success: 42'),
       );
@@ -406,7 +383,7 @@ void main() {
           onInitial: () => 'Initial',
           onLoading: () => 'Loading',
           onSuccess: (value) => 'Success: $value',
-          onFailure: (exception, _) => 'Failure: $exception',
+          onFailure: (failure) => 'Failure: $failure',
         ),
         startsWith('Failure: Exception: Test exception'),
       );

@@ -33,8 +33,8 @@ class Screen extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineMedium,
                   textAlign: TextAlign.center,
                 ),
-                onFailure: (exception, _) => Text(
-                  exception.toString(),
+                onFailure: (failure) => Text(
+                  failure.message,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
@@ -42,15 +42,15 @@ class Screen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: cubit.getOkStatusCode,
+              onPressed: cubit.getOk,
               child: const Text('Success'),
             ),
             ElevatedButton(
-              onPressed: cubit.getNotFoundStatusCode,
+              onPressed: cubit.getNotFound,
               child: const Text('Not Found'),
             ),
             ElevatedButton(
-              onPressed: cubit.getErrorStatusCode,
+              onPressed: cubit.getInternalServer,
               child: const Text('Internal Error'),
             ),
           ],
