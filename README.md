@@ -1,6 +1,6 @@
 <div align="center">
 
-![logo.jpg](logo.jpg)
+<img src="logo.jpg" alt="doso logo" width="40%"/>
 
 ![Static Badge](https://img.shields.io/badge/coverage-87.3%25-green?link=https%3A%2F%2Fgithub.com%2Fgrupo-sbf%2FDoSo%2Ftree%2Fmain%2Fcoverage)
 ![Static Badge](https://img.shields.io/badge/version-v1.0.0-blue)
