@@ -1,8 +1,12 @@
+<div align="center">
+
+![logo.jpg](logo.jpg)
+
 ![Static Badge](https://img.shields.io/badge/coverage-87.3%25-green?link=https%3A%2F%2Fgithub.com%2Fgrupo-sbf%2FDoSo%2Ftree%2Fmain%2Fcoverage)
 ![Static Badge](https://img.shields.io/badge/version-v1.0.0-blue)
 ![Static Badge](https://img.shields.io/badge/License-MIT-blue)
 
-
+</div>
 
 # DoSo: Simple and Elegant Error and State Handling
 
