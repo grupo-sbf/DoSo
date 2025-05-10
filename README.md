@@ -183,7 +183,7 @@ or
 So<CustomFailure, String> getOk() async {
   final result = await dataSource.getOk();
   return result.flatMap((code) {
-    if (code == is2XX() || code == is3XX() || code == is4XX()) {
+    if (code == is2XX() || code == is3XX()) {
       return Do.success(code.toString());
     } else {
       return Do.failure(CustomFailure('Error: $code'));
