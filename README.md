@@ -30,8 +30,8 @@ Check out the example below to see how DoSo can be used in your Flutter projects
 import 'package:doso/doso.dart';
 
 void main() async {
-  // [Do] represents a state with a value of type S and an optional failure of type F
-  // [So] represents a return statement (is a type alias for Do<F, S> and SoException<Exception, S> for a fixed failure type)
+  // [Do] represents a action. (State with a value of type S and an optional failure of type F)
+  // [So] represents a return. (Is a type alias for Do<F, S> and SoException<Exception, S> for a fixed failure type)
   
   // EMITTING STATES
   // Use Do.tryCatch to handle sync or async operations
