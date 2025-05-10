@@ -14,23 +14,6 @@
 
 ---
 
-## 🔧 Installation
-
-Add `doso` to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  doso: ^1.0.0
-```
-
-Then run:
-
-```bash
-dart pub get
-```
-
----
-
 ## 🚀 Getting Started
 
 DoSo offers a declarative and functional approach to handling common states such as:
@@ -40,15 +23,76 @@ DoSo offers a declarative and functional approach to handling common states such
 * `success`
 * `failure`
 
-This helps encapsulate logic and improves error management across your app.
+This encapsulates logic and enhances error handling throughout your app.
+Check out the example below to see how DoSo can be used in your Flutter projects.
+
+```dart
+import 'package:doso/doso.dart';
+
+void main() async {
+  // [Do] represents a state with a value of type S and an optional failure of type F
+  // [So] represents a return statement (is a type alias for Do<F, S> and SoException<Exception, S> for a fixed failure type)
+  
+  // EMITTING STATES
+  // Use Do.tryCatch to handle sync or async operations
+  final result = await Do.tryCatch(
+    onTry: () => doSomething(),
+    onCatch: (exception, stackTrace) => Exception('Captured error: $exception and $stackTrace'), // optional
+    onFinally: () => print('finished'), // optional
+  );
+  // or
+  // Use Do states directly with a common try/catch
+  try {
+    final result = doSomething();
+    return Do.success(result);
+  } catch (e) {
+    return Do.failure(e);
+  } finally {
+    print('finished');
+  }
+
+  // STATE HANDLING
+  // Handle all Do states with when:
+  result.when(
+    onInitial: () => print('Initial State'), // optional
+    onLoading: () => print('Loading...'),
+    onSuccess: (value) => print('Success: $value'),
+    onFailure: (failure) => print('Failure: $failure'),
+  );
+  // or
+  // Handle only Do.success and Do.failure with fold:
+  result.fold(
+    onFailure: (failure) => print('Failure: $failure'),
+    onSuccess: (value) => print('Success: $value'),
+  );
+  // or
+  // Just use a simple if statement:
+  if (result.isInitial) {}
+  if (result.isLoading) {}
+  if (result.isSuccess) {} 
+  if (result.isFailure) {}
+  
+  // RETURN STATEMENTS
+  // So with custom failure type
+  final So<F, S> result = Do.success(42);
+  
+  // So with failure fixed exception type
+  final SoException<Exception, S> result2 = Do.success(42);
+}
+```
 
 ### 📦 Available States
 
 ```dart
-Do.initial();       // Represents the initial state
-Do.loading();       // Represents a loading state
-Do.success(value);  // Represents a success with the associated value [S]
-Do.failure();       // Represents a failure with optional failure [F]
+// Do
+Do.initial();             // Represents the initial state
+Do.loading();             // Represents a loading state
+Do.success(value);        // Represents a success with the associated value [S]
+Do.failure([failure]);    // Represents a failure with optional failure [F]
+
+// So
+So<F, S>                  // Represents a return statement with a failure of type F and a value of type S
+SoException<Exception, S> // Represents a return statement with a fixed failure type of Exception and a value of type S
 ```
 
 ---
@@ -57,7 +101,7 @@ Do.failure();       // Represents a failure with optional failure [F]
 
 ### `getOrElse(S defaultValue)`
 
-Returns the value in `Do.success`, or the fallback if not available.
+Returns the value in `Do.success`, or the fallback value if it is not available.
 
 ```dart
 final value = Do.success(42).getOrElse(0); // 42
@@ -81,7 +125,7 @@ final result = Do.success(42).flatMap((value) => Do.success(value.toString()));
 
 ### `fold<T>`
 
-Combines all state branches into a single result.
+Handle success and failure.
 
 ```dart
 final message = Do.success(42).fold(
@@ -92,7 +136,7 @@ final message = Do.success(42).fold(
 
 ### `when<T>`
 
-Executes based on the current state.
+Handle all states.
 
 ```dart
 final output = result.when(
@@ -122,15 +166,29 @@ final result = await Do.tryCatch(
 ### ✅ Data Source
 
 ```dart
-So<Exception, int> getOk() => Do.tryCatch(onTry: () => http.get('/ok'));
+SoException<int> getOk() => Do.tryCatch(onTry: () => http.get('/ok'));
 ```
 
 ### ✅ Repository
 
 ```dart
-So<Exception, String> getOk() async {
+SoException<String> getOk() async {
   final result = await dataSource.getOk();
   return result.map((code) => code.toString());
+}
+```
+or
+
+```dart
+So<CustomFailure, String> getOk() async {
+  final result = await dataSource.getOk();
+  return result.flatMap((code) {
+    if (code == is2XX() || code == is3XX() || code == is4XX()) {
+      return Do.success(code.toString());
+    } else {
+      return Do.failure(CustomFailure('Error: $code'));
+    }
+  });
 }
 ```
 
@@ -167,24 +225,23 @@ BlocBuilder<MyCubit, Do<Exception, String>>(
 )
 ```
 
+Explore a practical example: [DoSo Example](https://github.com/grupo-sbf/DoSo/tree/main/example)
+
 ---
 
 ## ⚠️ When to Use DoSo
 
-DoSo is ideal for simple screen states or flows with a clear success/failure logic.
+DoSo is ideal for simple screen states or flows with a clear success/failure logic. You can
+combine it with other libraries like `flutter_bloc` or `provider` for state management.
 
 > If your state grows in complexity (e.g., multiple fields, nested properties), you might want to adopt a more traditional and robust approach like using manually crafted classes or more advanced tools.
 
 ---
 
-## 📎 Related Projects
+## DoSo is not:
 
-* `flutter_bloc`
-* `equatable`
-* `freezed`
-* `dartz`
-
----
+- A replacement for functional programming libraries like `dartz` or `fpdart`. It is a simple and elegant solution for handling states and errors in a functional way, without the need for complex abstractions.
+- A replacement for state management libraries like `flutter_bloc` or `provider`. It is a lightweight library that can be used in conjunction with these libraries to simplify state and error handling.
 
 ## 🔗 More Info & Contribute
 
