@@ -1,1 +1,15 @@
+.dart_tool/
+build/
+coverage/
+doc/
+example/
+test/
+.idea/
+.vscode/
+*.iml
+*.log
+*.tmp
+*.png
 *.jpg
+*.gif
+
