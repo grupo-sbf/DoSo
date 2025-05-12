@@ -240,7 +240,7 @@ combine it with other libraries like `flutter_bloc` or `provider` for state mana
 
 ## DoSo is not:
 
-- A replacement for functional programming libraries like `dartz` or `fpdart`. It is a simple and elegant solution for handling states and errors in a functional way, without the need for complex abstractions.
+- A replacement for functional programming libraries like `dartz` or `fpdart`. It is a simple and elegant solution for handling states and errors in a functional way, without the need follow entire functional approach.
 - A replacement for state management libraries like `flutter_bloc` or `provider`. It is a lightweight library that can be used in conjunction with these libraries to simplify state and error handling.
 
 ## 🔗 More Info & Contribute
