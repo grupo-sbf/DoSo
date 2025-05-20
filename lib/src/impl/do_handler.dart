@@ -66,4 +66,19 @@ sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
         Success() => onSuccess(_value as S),
         Failure() => onFailure(_failure as F),
       };
+
+  @override
+  T? maybeWhen<T>({
+    T Function()? onInitial,
+    T Function()? onLoading,
+    T Function(S value)? onSuccess,
+    T Function(F failure)? onFailure,
+    T Function()? orElse,
+  }) =>
+      switch (this) {
+        Initial() => onInitial?.call() ?? orElse?.call(),
+        Loading() => onLoading?.call() ?? orElse?.call(),
+        Success() => onSuccess?.call(_value as S) ?? orElse?.call(),
+        Failure() => onFailure?.call(_failure as F) ?? orElse?.call(),
+      };
 }

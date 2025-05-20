@@ -128,6 +128,14 @@ abstract interface class Do<F, S> {
     required T Function(F failure) onFailure,
   });
 
+  /// Same as [when] but with all states being optional.
+  T? maybeWhen<T>({
+    T Function()? onInitial,
+    T Function()? onLoading,
+    T Function(S value)? onSuccess,
+    T Function(F failure)? onFailure,
+  });
+
   /// Executes the [onTry] function and returns a [So] if is a [Do] object.
   ///
   /// If the [onTry] function completes successfully, it returns a [Success]

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-05-09 17:34:12</td>
+            <td class="headerValue">2025-05-20 11:02:51</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -190,64 +190,72 @@
 <span id="L128"><span class="lineNum">     128</span>              :     required T Function(F failure) onFailure,</span>
 <span id="L129"><span class="lineNum">     129</span>              :   });</span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
-<span id="L131"><span class="lineNum">     131</span>              :   /// Executes the [onTry] function and returns a [So] if is a [Do] object.</span>
-<span id="L132"><span class="lineNum">     132</span>              :   ///</span>
-<span id="L133"><span class="lineNum">     133</span>              :   /// If the [onTry] function completes successfully, it returns a [Success]</span>
-<span id="L134"><span class="lineNum">     134</span>              :   /// object with the result.</span>
-<span id="L135"><span class="lineNum">     135</span>              :   /// If the [onTry] function throws an exception, it returns a [Failure]</span>
-<span id="L136"><span class="lineNum">     136</span>              :   /// object.</span>
-<span id="L137"><span class="lineNum">     137</span>              :   ///</span>
-<span id="L138"><span class="lineNum">     138</span>              :   /// The [onCatch] function can be used to handle the exception and return a</span>
-<span id="L139"><span class="lineNum">     139</span>              :   /// custom exception.</span>
+<span id="L131"><span class="lineNum">     131</span>              :   /// Same as [when] but with all states being optional.</span>
+<span id="L132"><span class="lineNum">     132</span>              :   T? maybeWhen&lt;T&gt;({</span>
+<span id="L133"><span class="lineNum">     133</span>              :     T Function()? onInitial,</span>
+<span id="L134"><span class="lineNum">     134</span>              :     T Function()? onLoading,</span>
+<span id="L135"><span class="lineNum">     135</span>              :     T Function(S value)? onSuccess,</span>
+<span id="L136"><span class="lineNum">     136</span>              :     T Function(F failure)? onFailure,</span>
+<span id="L137"><span class="lineNum">     137</span>              :   });</span>
+<span id="L138"><span class="lineNum">     138</span>              : </span>
+<span id="L139"><span class="lineNum">     139</span>              :   /// Executes the [onTry] function and returns a [So] if is a [Do] object.</span>
 <span id="L140"><span class="lineNum">     140</span>              :   ///</span>
-<span id="L141"><span class="lineNum">     141</span>              :   /// The [onFinally] function is called after the [onTry] function</span>
-<span id="L142"><span class="lineNum">     142</span>              :   /// completes, regardless of whether it was successful or not.</span>
-<span id="L143"><span class="lineNum">     143</span>              :   ///</span>
-<span id="L144"><span class="lineNum">     144</span>              :   /// This method is useful for wrapping operations in a</span>
-<span id="L145"><span class="lineNum">     145</span>              :   /// [Do] object, allowing for better error handling and</span>
-<span id="L146"><span class="lineNum">     146</span>              :   /// result management.</span>
-<span id="L147"><span class="lineNum">     147</span>              :   ///</span>
-<span id="L148"><span class="lineNum">     148</span>              :   /// Example usage:</span>
-<span id="L149"><span class="lineNum">     149</span>              :   /// ```dart</span>
-<span id="L150"><span class="lineNum">     150</span>              :   /// final result = await Do.tryCatch(</span>
-<span id="L151"><span class="lineNum">     151</span>              :   ///   onTry: () async {</span>
-<span id="L152"><span class="lineNum">     152</span>              :   ///     // Perform some operation</span>
-<span id="L153"><span class="lineNum">     153</span>              :   ///     return await someAsyncOrSyncFunction();</span>
-<span id="L154"><span class="lineNum">     154</span>              :   ///   },</span>
-<span id="L155"><span class="lineNum">     155</span>              :   ///   onCatch: (exception, stackTrace) {</span>
-<span id="L156"><span class="lineNum">     156</span>              :   ///     // Handle the exception and return a custom exception</span>
-<span id="L157"><span class="lineNum">     157</span>              :   ///     return CustomException('An error occurred: $exception');</span>
-<span id="L158"><span class="lineNum">     158</span>              :   ///   },</span>
-<span id="L159"><span class="lineNum">     159</span>              :   ///   onFinally: () {</span>
-<span id="L160"><span class="lineNum">     160</span>              :   ///     // Perform any cleanup or finalization</span>
-<span id="L161"><span class="lineNum">     161</span>              :   ///   },</span>
-<span id="L162"><span class="lineNum">     162</span>              :   ///  );</span>
-<span id="L163"><span class="lineNum">     163</span>              :   /// ```</span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">           1 :   static So&lt;F, S&gt; tryCatch&lt;F, S&gt;({</span></span>
-<span id="L165"><span class="lineNum">     165</span>              :     required FutureOr&lt;S&gt; Function() onTry,</span>
-<span id="L166"><span class="lineNum">     166</span>              :     F Function(Exception exception, StackTrace stackTrace)? onCatch,</span>
-<span id="L167"><span class="lineNum">     167</span>              :     void Function()? onFinally,</span>
-<span id="L168"><span class="lineNum">     168</span>              :   }) async {</span>
-<span id="L169"><span class="lineNum">     169</span>              :     try {</span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">           1 :       final result = await onTry();</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">           1 :       return Do.success(result);</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">           1 :     } on Exception catch (e, s) {</span></span>
-<span id="L173"><span class="lineNum">     173</span>              :       if (onCatch == null) {</span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">           1 :         return Do.failure(e as F);</span></span>
-<span id="L175"><span class="lineNum">     175</span>              :       }</span>
-<span id="L176"><span class="lineNum">     176</span>              : </span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           2 :       return Do.failure(onCatch(e, s));</span></span>
-<span id="L178"><span class="lineNum">     178</span>              :     } catch (e, s) {</span>
-<span id="L179"><span class="lineNum">     179</span>              :       if (onCatch == null) {</span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           1 :         return Do.failure(e as F);</span></span>
-<span id="L181"><span class="lineNum">     181</span>              :       }</span>
-<span id="L182"><span class="lineNum">     182</span>              : </span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">           4 :       return Do.failure(onCatch(Exception(e.toString()), s));</span></span>
-<span id="L184"><span class="lineNum">     184</span>              :     } finally {</span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           1 :       onFinally?.call();</span></span>
-<span id="L186"><span class="lineNum">     186</span>              :     }</span>
-<span id="L187"><span class="lineNum">     187</span>              :   }</span>
-<span id="L188"><span class="lineNum">     188</span>              : }</span>
+<span id="L141"><span class="lineNum">     141</span>              :   /// If the [onTry] function completes successfully, it returns a [Success]</span>
+<span id="L142"><span class="lineNum">     142</span>              :   /// object with the result.</span>
+<span id="L143"><span class="lineNum">     143</span>              :   /// If the [onTry] function throws an exception, it returns a [Failure]</span>
+<span id="L144"><span class="lineNum">     144</span>              :   /// object.</span>
+<span id="L145"><span class="lineNum">     145</span>              :   ///</span>
+<span id="L146"><span class="lineNum">     146</span>              :   /// The [onCatch] function can be used to handle the exception and return a</span>
+<span id="L147"><span class="lineNum">     147</span>              :   /// custom exception.</span>
+<span id="L148"><span class="lineNum">     148</span>              :   ///</span>
+<span id="L149"><span class="lineNum">     149</span>              :   /// The [onFinally] function is called after the [onTry] function</span>
+<span id="L150"><span class="lineNum">     150</span>              :   /// completes, regardless of whether it was successful or not.</span>
+<span id="L151"><span class="lineNum">     151</span>              :   ///</span>
+<span id="L152"><span class="lineNum">     152</span>              :   /// This method is useful for wrapping operations in a</span>
+<span id="L153"><span class="lineNum">     153</span>              :   /// [Do] object, allowing for better error handling and</span>
+<span id="L154"><span class="lineNum">     154</span>              :   /// result management.</span>
+<span id="L155"><span class="lineNum">     155</span>              :   ///</span>
+<span id="L156"><span class="lineNum">     156</span>              :   /// Example usage:</span>
+<span id="L157"><span class="lineNum">     157</span>              :   /// ```dart</span>
+<span id="L158"><span class="lineNum">     158</span>              :   /// final result = await Do.tryCatch(</span>
+<span id="L159"><span class="lineNum">     159</span>              :   ///   onTry: () async {</span>
+<span id="L160"><span class="lineNum">     160</span>              :   ///     // Perform some operation</span>
+<span id="L161"><span class="lineNum">     161</span>              :   ///     return await someAsyncOrSyncFunction();</span>
+<span id="L162"><span class="lineNum">     162</span>              :   ///   },</span>
+<span id="L163"><span class="lineNum">     163</span>              :   ///   onCatch: (exception, stackTrace) {</span>
+<span id="L164"><span class="lineNum">     164</span>              :   ///     // Handle the exception and return a custom exception</span>
+<span id="L165"><span class="lineNum">     165</span>              :   ///     return CustomException('An error occurred: $exception');</span>
+<span id="L166"><span class="lineNum">     166</span>              :   ///   },</span>
+<span id="L167"><span class="lineNum">     167</span>              :   ///   onFinally: () {</span>
+<span id="L168"><span class="lineNum">     168</span>              :   ///     // Perform any cleanup or finalization</span>
+<span id="L169"><span class="lineNum">     169</span>              :   ///   },</span>
+<span id="L170"><span class="lineNum">     170</span>              :   ///  );</span>
+<span id="L171"><span class="lineNum">     171</span>              :   /// ```</span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">           1 :   static So&lt;F, S&gt; tryCatch&lt;F, S&gt;({</span></span>
+<span id="L173"><span class="lineNum">     173</span>              :     required FutureOr&lt;S&gt; Function() onTry,</span>
+<span id="L174"><span class="lineNum">     174</span>              :     F Function(Exception exception, StackTrace stackTrace)? onCatch,</span>
+<span id="L175"><span class="lineNum">     175</span>              :     void Function()? onFinally,</span>
+<span id="L176"><span class="lineNum">     176</span>              :   }) async {</span>
+<span id="L177"><span class="lineNum">     177</span>              :     try {</span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">           1 :       final result = await onTry();</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">           1 :       return Do.success(result);</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           1 :     } on Exception catch (e, s) {</span></span>
+<span id="L181"><span class="lineNum">     181</span>              :       if (onCatch == null) {</span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           1 :         return Do.failure(e as F);</span></span>
+<span id="L183"><span class="lineNum">     183</span>              :       }</span>
+<span id="L184"><span class="lineNum">     184</span>              : </span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           2 :       return Do.failure(onCatch(e, s));</span></span>
+<span id="L186"><span class="lineNum">     186</span>              :     } catch (e, s) {</span>
+<span id="L187"><span class="lineNum">     187</span>              :       if (onCatch == null) {</span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">           1 :         return Do.failure(e as F);</span></span>
+<span id="L189"><span class="lineNum">     189</span>              :       }</span>
+<span id="L190"><span class="lineNum">     190</span>              : </span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">           4 :       return Do.failure(onCatch(Exception(e.toString()), s));</span></span>
+<span id="L192"><span class="lineNum">     192</span>              :     } finally {</span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">           1 :       onFinally?.call();</span></span>
+<span id="L194"><span class="lineNum">     194</span>              :     }</span>
+<span id="L195"><span class="lineNum">     195</span>              :   }</span>
+<span id="L196"><span class="lineNum">     196</span>              : }</span>
         </pre>
               </td>
             </tr>
