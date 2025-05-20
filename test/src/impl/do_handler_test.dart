@@ -1,4 +1,5 @@
 import 'package:doso/src/impl/do_handler.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -387,6 +388,75 @@ void main() {
         ),
         startsWith('Failure: Exception: Test exception'),
       );
+    });
+  });
+
+  group('maybeWhen', () {
+    test('Should execute onInitial callback when state is Initial', () {
+      const handler = Initial<Exception, int>();
+      final result = handler.maybeWhen(onInitial: () => 'Initial');
+      expect(result, equals('Initial'));
+    });
+
+    test('Should execute onLoading callback when state is Loading', () {
+      const handler = Loading<Exception, int>();
+      final result = handler.maybeWhen(onLoading: () => 'Loading');
+      expect(result, equals('Loading'));
+    });
+
+    test('Should execute onSuccess callback when state is Success', () {
+      const handler = Success<Exception, int>(42);
+      final result = handler.maybeWhen(
+        onSuccess: (value) => 'Success: $value',
+      );
+
+      expect(result, equals('Success: 42'));
+    });
+
+    test('Should execute onFailure callback when state is Failure', () {
+      final handler = Failure<Exception, int>(Exception('Test exception'));
+      final result = handler.maybeWhen(
+        onFailure: (failure) => 'Failure: $failure',
+      );
+
+      expect(result, equals('Failure: Exception: Test exception'));
+    });
+
+    test('Should return null when no callback is provided for the state', () {
+      const handler = Initial<Exception, int>();
+      final result = handler.maybeWhen();
+      expect(result, isNull);
+    });
+
+    test(
+        'Should execute default callback when no specific callback is provided',
+        () {
+      const handler = Success<Exception, int>(42);
+      final result = handler.maybeWhen(orElse: () => 'Default');
+      expect(result, equals('Default'));
+    });
+
+    test('Should execute orElse callback when state exist but value is null',
+        () {
+      const handler = Success<Exception, int?>(null);
+      final result = handler.maybeWhen(
+        onSuccess: (value) => value,
+        orElse: () => SizedBox(),
+      );
+
+      expect(result, isA<SizedBox>());
+    });
+
+    test('Should execute default callback for unhandled state', () {
+      const handler = Loading<Exception, int>();
+      final result = handler.maybeWhen(
+        onInitial: () => fail('Should not be called'),
+        onSuccess: (_) => fail('Should not be called'),
+        onFailure: (_) => fail('Should not be called'),
+        orElse: () => 'Default',
+      );
+
+      expect(result, equals('Default'));
     });
   });
 }

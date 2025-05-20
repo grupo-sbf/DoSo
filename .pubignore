@@ -2,7 +2,6 @@
 build/
 coverage/
 doc/
-example/
 test/
 .idea/
 .vscode/

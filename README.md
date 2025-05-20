@@ -2,7 +2,7 @@
 
 <img src="logo.jpg" alt="doso logo" width="40%"/>
 
-![Static Badge](https://img.shields.io/badge/coverage-87.3%25-green?link=https%3A%2F%2Fgithub.com%2Fgrupo-sbf%2FDoSo%2Ftree%2Fmain%2Fcoverage)
+![Static Badge](https://img.shields.io/badge/coverage-88.3%25-green?link=https%3A%2F%2Fgithub.com%2Fgrupo-sbf%2FDoSo%2Ftree%2Fmain%2Fcoverage)
 ![Static Badge](https://img.shields.io/badge/version-v1.0.0-blue)
 ![Static Badge](https://img.shields.io/badge/License-MIT-blue)
 
@@ -66,6 +66,15 @@ void main() async {
     onSuccess: (value) => print('Success: $value'),
   );
   // or
+  // Handle specific states with maybeWhen:
+  final output = result.maybeWhen(
+    onInitial: () => 'Initial', // optional
+    onLoading: () => 'Loading', // optional
+    onSuccess: (value) => 'Success: $value', // optional
+    onFailure: (failure) => 'Failure: $failure', // optional
+    orElse: () => 'Else' // optional
+  );
+  // or
   // Just use a simple if statement:
   if (result.isInitial) {}
   if (result.isLoading) {}
@@ -74,10 +83,10 @@ void main() async {
   
   // RETURN STATEMENTS
   // So with custom failure type
-  final So<F, S> result = Do.success(42);
+  final So<MyCustomFailure, int> result = Do.success(42);
   
   // So with failure fixed exception type
-  final SoException<Exception, S> result2 = Do.success(42);
+  final SoException<String> result2 = Do.success('String');
 }
 ```
 
@@ -85,14 +94,14 @@ void main() async {
 
 ```dart
 // Do
-Do.initial();             // Represents the initial state
-Do.loading();             // Represents a loading state
-Do.success(value);        // Represents a success with the associated value [S]
-Do.failure([failure]);    // Represents a failure with optional failure [F]
+Do.initial();            // Represents the initial state
+Do.loading();            // Represents a loading state
+Do.success(value);       // Represents a success with the associated value [S]
+Do.failure([failure]);   // Represents a failure with optional failure [F]
 
 // So
-So<F, S>                  // Represents a return statement with a failure of type F and a value of type S
-SoException<Exception, S> // Represents a return statement with a fixed failure type of Exception and a value of type S
+So<F, S>                 // Represents a return statement with a failure of type F and a value of type S
+SoException<S>           // Represents a return statement with a fixed failure type of Exception and a value of type S
 ```
 
 ---
@@ -145,6 +154,20 @@ final output = result.when(
   onSuccess: (value) => 'Success: $value',
   onFailure: (failure) => 'Failure: $failure',
 );
+```
+
+### `maybeWhen<T>`
+
+Handle specific states with orElse.
+
+```dart
+final result = Do.success(42);
+final output = result.maybeWhen(
+  onSuccess: (value) => 'Success: $value', // optional
+  orElse: () => 'Default', // optional
+);
+
+print(output); // Output: Success: 42
 ```
 
 ### `tryCatch`
