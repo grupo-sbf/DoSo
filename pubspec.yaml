@@ -1,6 +1,6 @@
 name: doso
 description: "DoSo is a lightweight Dart library for simple and elegant error and state handling, designed to reduce boilerplate and avoid code generation in Flutter apps."
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/grupo-sbf/DoSo
 issue_tracker: https://github.com/grupo-sbf/DoSo/issues
 homepage: https://github.com/grupo-sbf/DoSo
