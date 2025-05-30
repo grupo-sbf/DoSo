@@ -134,6 +134,7 @@ abstract interface class Do<F, S> {
     T Function()? onLoading,
     T Function(S value)? onSuccess,
     T Function(F failure)? onFailure,
+    T Function()? orElse,
   });
 
   /// Executes the [onTry] function and returns a [So] if is a [Do] object.
