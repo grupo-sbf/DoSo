@@ -394,13 +394,19 @@ void main() {
   group('maybeWhen', () {
     test('Should execute onInitial callback when state is Initial', () {
       const handler = Initial<Exception, int>();
-      final result = handler.maybeWhen(onInitial: () => 'Initial');
+      final result = handler.maybeWhen(
+        onInitial: () => 'Initial',
+        orElse: () => 'Default',
+      );
       expect(result, equals('Initial'));
     });
 
     test('Should execute onLoading callback when state is Loading', () {
       const handler = Loading<Exception, int>();
-      final result = handler.maybeWhen(onLoading: () => 'Loading');
+      final result = handler.maybeWhen(
+        onLoading: () => 'Loading',
+        orElse: () => 'Default',
+      );
       expect(result, equals('Loading'));
     });
 
@@ -408,8 +414,8 @@ void main() {
       const handler = Success<Exception, int>(42);
       final result = handler.maybeWhen(
         onSuccess: (value) => 'Success: $value',
+        orElse: () => 'Default',
       );
-
       expect(result, equals('Success: 42'));
     });
 
@@ -417,14 +423,14 @@ void main() {
       final handler = Failure<Exception, int>(Exception('Test exception'));
       final result = handler.maybeWhen(
         onFailure: (failure) => 'Failure: $failure',
+        orElse: () => 'Default',
       );
-
       expect(result, equals('Failure: Exception: Test exception'));
     });
 
     test('Should return null when no callback is provided for the state', () {
       const handler = Initial<Exception, int>();
-      final result = handler.maybeWhen();
+      final result = handler.whenOrNull();
       expect(result, isNull);
     });
 
@@ -457,6 +463,50 @@ void main() {
       );
 
       expect(result, equals('Default'));
+    });
+  });
+
+  group('whenOrNull', () {
+    test('Should execute onInitial when state is Initial', () {
+      const handler = Initial<Exception, int>();
+      final result = handler.whenOrNull(onInitial: () => 'Initial');
+      expect(result, equals('Initial'));
+    });
+
+    test('Should return null when no matching callback is provided', () {
+      const handler = Loading<Exception, int>();
+      final result = handler.whenOrNull();
+      expect(result, isNull);
+    });
+
+    test('Should execute onSuccess when state is Success', () {
+      const handler = Success<Exception, int>(123);
+      final result = handler.whenOrNull(onSuccess: (v) => 'Success: $v');
+      expect(result, equals('Success: 123'));
+    });
+
+    test(
+        'Should return null when state is Success but onSuccess is not provided',
+        () {
+      const handler = Success<Exception, int>(123);
+      final result = handler.whenOrNull();
+      expect(result, isNull);
+    });
+
+    test('Should execute onFailure when state is Failure', () {
+      final handler = Failure<Exception, int>(Exception('Error X'));
+      final result = handler.whenOrNull(
+        onFailure: (failure) => 'Failure: $failure',
+      );
+      expect(result, equals('Failure: Exception: Error X'));
+    });
+
+    test(
+        'Should return null when state is Failure but onFailure is not provided',
+        () {
+      final handler = Failure<Exception, int>(Exception('Error Y'));
+      final result = handler.whenOrNull();
+      expect(result, isNull);
     });
   });
 }
