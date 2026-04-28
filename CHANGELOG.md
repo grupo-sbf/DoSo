@@ -1,4 +1,4 @@
-## 1.1.1
+## 1.1.2
 
 * Fixed `tryCatch` method when onCatch is null.
 
