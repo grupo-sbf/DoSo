@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'do.dart';
 
-/// A type alias for a function that returns a `FutureOr` of type `Do<S, F>`.
+/// A type alias for a function that returns a `FutureOr` of type `Do<F, S>`.
 ///
 /// This is used to represent a computation that may succeed or fail.
 /// The type parameters [S] and [F] represent the success and failure types,
@@ -10,7 +10,7 @@ import 'do.dart';
 ///
 /// This type alias is useful for defining functions that perform asynchronous
 /// operations and return a result wrapped in a [Do] object.
-/// The [So] type alias is a shorthand for `FutureOr<Do<S, F>>`, which means
+/// The [So] type alias is a shorthand for `FutureOr<Do<F, S>>`, which means
 /// that the function can return either a `Future` or a synchronous
 /// `Do` object.
 ///
@@ -25,7 +25,7 @@ import 'do.dart';
 /// either return a successful response or an error.
 ///
 /// ```dart
-/// So<String, Exception> fetchData() async {
+/// So<Exception, String> fetchData() async {
 ///  return Do.tryCatch(
 ///    onTry: () async {
 ///     final response = await http.get('https://api.example.com/data');
@@ -43,7 +43,7 @@ import 'do.dart';
 /// ```
 typedef So<F, S> = FutureOr<Do<F, S>>;
 
-/// A type alias for a function that returns a `FutureOr` of type `Do<S, Exception>`.
+/// A type alias for a function that returns a `FutureOr` of type `Do<Exception, S>`.
 ///
 /// This is used to represent a computation that may succeed or fail with an
 /// exception.

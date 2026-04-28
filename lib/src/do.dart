@@ -180,13 +180,13 @@ abstract interface class Do<F, S> {
       return Do.success(result);
     } on Exception catch (e, s) {
       if (onCatch == null) {
-        return Do.failure(e as F);
+        return Do.failure(Exception(e.toString()));
       }
 
       return Do.failure(onCatch(e, s));
     } catch (e, s) {
       if (onCatch == null) {
-        return Do.failure(e as F);
+        return Do.failure(Exception(e.toString()));
       }
 
       return Do.failure(onCatch(Exception(e.toString()), s));

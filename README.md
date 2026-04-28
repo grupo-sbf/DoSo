@@ -271,3 +271,9 @@ combine it with other libraries like `flutter_bloc` or `provider` for state mana
 Check out the full implementation, open issues, and contribute on GitHub: [DoSo on GitHub](https://github.com/grupo-sbf/DoSo)
 
 ---
+
+## 📌 Feature Ready
+
+This package is **feature ready**, meaning all planned features have been implemented and it is stable. As such, it's common that there won't be frequent changes or updates for a while. Bug fixes and critical improvements will still be addressed as needed.
+
+---
