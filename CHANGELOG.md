@@ -1,3 +1,7 @@
+## 1.2.0
+
+* Changed the `So` structure to `F extends Exception`.
+
 ## 1.1.2
 
 * Fixed `tryCatch` method when onCatch is null.

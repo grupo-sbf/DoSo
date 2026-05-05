@@ -58,20 +58,6 @@ void main() {
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
-
-    test('Failure state should handle null exception and stackTrace', () {
-      const handler = Failure<Exception?, int>();
-
-      expect(handler.getOrElse(0), 0);
-      expect(handler.isInitial, isFalse);
-      expect(handler.isLoading, isFalse);
-      expect(handler.isSuccess, isFalse);
-      expect(handler.isFailure, isTrue);
-      handler.fold(
-        onFailure: (failure) => expect(failure, isNull),
-        onSuccess: (_) => fail('Expected failure, but got success'),
-      );
-    });
   });
 
   group('getOrElse', () {

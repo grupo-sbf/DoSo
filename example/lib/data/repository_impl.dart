@@ -12,20 +12,22 @@ class RepositoryImpl implements Repository {
   @override
   So<NetworkFailure, String> getOk() async {
     final result = await dataSource.getOk();
-    return result.map((data) => data.toString());
+    return (result.map((data) => data.toString())
+        as Do<NetworkFailure, String>);
   }
 
   @override
   So<NetworkFailure, String> getNotFound() async {
     final result = await dataSource.getNotFound();
-    return result.flatMap(
+    return (result.flatMap(
       (_) => Do.failure(NotFoundFailure()),
-    );
+    ) as Do<NetworkFailure, String>);
   }
 
   @override
   So<NetworkFailure, String> getError() async {
     final result = await dataSource.getInternalServerError();
-    return result.map((data) => data.toString());
+    return (result.map((data) => data.toString())
+        as Do<NetworkFailure, String>);
   }
 }

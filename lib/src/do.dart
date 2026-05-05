@@ -3,7 +3,7 @@ import 'dart:async';
 import 'impl/do_handler.dart';
 import 'so.dart';
 
-abstract interface class Do<F, S> {
+abstract interface class Do<F extends Exception, S> {
   const factory Do.initial() = Initial<F, S>;
 
   const factory Do.loading() = Loading<F, S>;
@@ -46,7 +46,7 @@ abstract interface class Do<F, S> {
   /// final mappedResult = result.map((value) => value.toString());
   /// print(mappedResult); // Output: Do<String>.success('42')
   /// ```
-  So<F, T> map<T>(T Function(S value) mapper);
+  SoException<T> map<T>(T Function(S value) mapper);
 
   /// Maps the [Do] object to another type [T] using the provided [mapper]
   /// function.
@@ -62,7 +62,7 @@ abstract interface class Do<F, S> {
   /// );
   /// print(mappedResult); // Output: Do<String>.success('42')
   /// ```
-  So<F, T> flatMap<T>(Do<F, T> Function(S value) mapper);
+  SoException<T> flatMap<T>(Do<F, T> Function(S value) mapper);
 
   /// Folds the [Do] object into a single value based on its state.
   ///
@@ -170,7 +170,7 @@ abstract interface class Do<F, S> {
   ///   },
   ///  );
   /// ```
-  static So<F, S> tryCatch<F, S>({
+  static So<F, S> tryCatch<F extends Exception, S>({
     required FutureOr<S> Function() onTry,
     F Function(Exception exception, StackTrace stackTrace)? onCatch,
     void Function()? onFinally,
@@ -180,13 +180,13 @@ abstract interface class Do<F, S> {
       return Do.success(result);
     } on Exception catch (e, s) {
       if (onCatch == null) {
-        return Do.failure(Exception(e.toString()) as F);
+        return Do.failure(e as F);
       }
 
       return Do.failure(onCatch(e, s));
     } catch (e, s) {
       if (onCatch == null) {
-        return Do.failure(Exception(e.toString()) as F);
+        return Do.failure(e as F);
       }
 
       return Do.failure(onCatch(Exception(e.toString()), s));

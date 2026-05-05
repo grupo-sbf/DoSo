@@ -9,7 +9,7 @@ enum NetworkFailureType {
   final String message;
 }
 
-interface class NetworkFailure {
+interface class NetworkFailure implements Exception {
   NetworkFailureType get type => NetworkFailureType.unexpected;
 
   String get message => type.message;

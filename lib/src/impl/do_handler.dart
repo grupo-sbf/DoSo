@@ -5,7 +5,8 @@ import 'do_exception.dart';
 
 part 'do_states.dart';
 
-sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
+sealed class DoHandler<F extends Exception, S> extends Equatable
+    implements Do<F, S> {
   const DoHandler();
 
   S? get _value => null;

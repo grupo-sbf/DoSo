@@ -41,7 +41,7 @@ import 'do.dart';
 ///  );
 /// }
 /// ```
-typedef So<F, S> = FutureOr<Do<F, S>>;
+typedef So<F extends Exception, S> = FutureOr<Do<F, S>>;
 
 /// A type alias for a function that returns a `FutureOr` of type `Do<Exception, S>`.
 ///

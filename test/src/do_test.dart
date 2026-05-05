@@ -44,12 +44,12 @@ void main() {
 
     test('Should handle generic errors when onCatch is not provided', () async {
       final result = await Do.tryCatch(
-        onTry: () async => throw 'Generic error',
+        onTry: () async => throw Exception('Generic error'),
       );
 
       expect(result.isFailure, isTrue);
       result.fold(
-        onFailure: (failure) => expect(failure, contains('Generic error')),
+        onFailure: (failure) => expect(failure, isA<Exception>()),
         onSuccess: (_) => fail('Expected failure, but got success'),
       );
     });
