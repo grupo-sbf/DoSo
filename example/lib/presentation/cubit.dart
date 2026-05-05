@@ -16,7 +16,7 @@ class MyCubit extends Cubit<MyState> {
 
     final result = await repository.getOk();
     return result.fold(
-      onFailure: (failure) => emit(Do.failure(failure)),
+      onFailure: (failure) => emit(Do.failure(failure as NetworkFailure)),
       onSuccess: (data) => emit(Do.success('Success: $data')),
     );
   }
@@ -26,7 +26,7 @@ class MyCubit extends Cubit<MyState> {
 
     final result = await repository.getNotFound();
     return result.fold(
-      onFailure: (failure) => emit(Do.failure(failure)),
+      onFailure: (failure) => emit(Do.failure(failure as NetworkFailure)),
       onSuccess: (data) => emit(Do.success(data)),
     );
   }
@@ -36,7 +36,7 @@ class MyCubit extends Cubit<MyState> {
 
     final result = await repository.getError();
     return result.fold(
-      onFailure: (failure) => emit(Do.failure(failure)),
+      onFailure: (failure) => emit(Do.failure(failure as NetworkFailure)),
       onSuccess: (data) => emit(Do.success(data)),
     );
   }

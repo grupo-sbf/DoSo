@@ -1,11 +1,9 @@
 import 'package:doso/doso.dart';
 
-import 'customs_failure.dart';
-
 abstract interface class Repository {
-  So<NetworkFailure, String> getOk();
+  SoException<String> getOk();
 
-  So<NetworkFailure, String> getNotFound();
+  SoException<String> getNotFound();
 
-  So<NetworkFailure, String> getError();
+  SoException<String> getError();
 }
