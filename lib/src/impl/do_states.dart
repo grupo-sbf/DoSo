@@ -25,10 +25,9 @@ final class Success<F, S> extends DoHandler<F, S> {
 }
 
 final class Failure<F, S> extends DoHandler<F, S> {
-  const Failure([this._failure]);
+  const Failure(this._failure);
 
-  @override
-  final F? _failure;
+  final F _failure;
 
   @override
   List<Object?> get props => [_failure];

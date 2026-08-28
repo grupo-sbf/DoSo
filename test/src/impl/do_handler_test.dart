@@ -59,8 +59,8 @@ void main() {
       );
     });
 
-    test('Failure state should handle null exception and stackTrace', () {
-      const handler = Failure<Exception?, int>();
+    test('Failure state should carry an explicit null when F is nullable', () {
+      const handler = Failure<Exception?, int>(null);
 
       expect(handler.getOrElse(0), 0);
       expect(handler.isInitial, isFalse);
@@ -79,14 +79,14 @@ void main() {
         'getOrElse should return the value if Success or the default value otherwise',
         () async {
       const successHandler = Success<Exception, int>(42);
-      const failureHandler = Failure<Exception, int>();
+      final failureHandler = Failure<Exception, int>(Exception('Test'));
 
       expect(successHandler.getOrElse(0), equals(42));
       expect(failureHandler.getOrElse(0), equals(0));
     });
 
     test('getOrElse should return null when default value is null', () async {
-      const handler = Failure<Exception, int?>();
+      final handler = Failure<Exception, int?>(Exception('Test'));
       final result = handler.getOrElse(null);
 
       expect(result, isNull);
@@ -457,6 +457,45 @@ void main() {
       );
 
       expect(result, equals('Default'));
+    });
+
+    test('Should fall back to onLoading when onInitial is omitted', () {
+      const handler = Initial<Exception, int>();
+
+      final result = handler.when(
+        onLoading: () => 'Loading',
+        onSuccess: (value) => 'Success: $value',
+        onFailure: (failure) => 'Failure: $failure',
+      );
+
+      expect(result, equals('Loading'));
+    });
+
+    test('Should prefer onInitial over onLoading when both are given', () {
+      const handler = Initial<Exception, int>();
+
+      final result = handler.when(
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (value) => 'Success: $value',
+        onFailure: (failure) => 'Failure: $failure',
+      );
+
+      expect(result, equals('Initial'));
+    });
+
+    test('Should return a non-nullable T without onInitial', () {
+      const handler = Initial<Exception, int>();
+
+      // Would throw before 2.0.0: the initial branch fell back to `() {} as T`.
+      int result() => handler.when(
+            onLoading: () => 0,
+            onSuccess: (value) => value,
+            onFailure: (_) => -1,
+          );
+
+      expect(result, returnsNormally);
+      expect(result(), equals(0));
     });
   });
 }

@@ -10,8 +10,6 @@ sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
 
   S? get _value => null;
 
-  F? get _failure => null;
-
   @override
   bool get isInitial => this is Initial;
 
@@ -29,29 +27,36 @@ sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
 
   @override
   Do<F, T> map<T>(T Function(S value) mapper) => fold(
-        onFailure: (failure) => Do.failure(failure),
+        onFailure: Do.failure,
         onSuccess: (value) => Do.success(mapper(value)),
       );
 
   @override
   Do<F, T> flatMap<T>(Do<F, T> Function(S value) mapper) => fold(
-        onFailure: (failure) => Do.failure(failure),
-        onSuccess: (value) => mapper(value),
+        onFailure: Do.failure,
+        onSuccess: mapper,
       );
 
   @override
   T fold<T>({
     required T Function(F failure) onFailure,
     required T Function(S value) onSuccess,
-  }) =>
-      switch (this) {
-        Success() => onSuccess(_value as S),
-        Failure() => onFailure(_failure as F),
-        _ => throw DoException(
-            type: DoExceptionType.invalidState,
-            message: 'Invalid state: $this. Expected Do.success or Do.failure',
-          ),
-      };
+  }) {
+    final state = this;
+
+    if (state is Success<F, S>) {
+      return onSuccess(state._value);
+    }
+
+    if (state is Failure<F, S>) {
+      return onFailure(state._failure);
+    }
+
+    throw DoException(
+      type: DoExceptionType.invalidState,
+      message: 'Invalid state: $this. Expected Do.success or Do.failure',
+    );
+  }
 
   @override
   T when<T>({
@@ -59,13 +64,16 @@ sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
     required T Function() onLoading,
     required T Function(S value) onSuccess,
     required T Function(F failure) onFailure,
-  }) =>
-      switch (this) {
-        Initial() => onInitial?.call() ?? () {} as T,
-        Loading() => onLoading(),
-        Success() => onSuccess(_value as S),
-        Failure() => onFailure(_failure as F),
-      };
+  }) {
+    final state = this;
+
+    return switch (state) {
+      Initial() => (onInitial ?? onLoading)(),
+      Loading() => onLoading(),
+      Success<F, S>() => onSuccess(state._value),
+      Failure<F, S>() => onFailure(state._failure),
+    };
+  }
 
   @override
   T? maybeWhen<T>({
@@ -74,11 +82,14 @@ sealed class DoHandler<F, S> extends Equatable implements Do<F, S> {
     T Function(S value)? onSuccess,
     T Function(F failure)? onFailure,
     T Function()? orElse,
-  }) =>
-      switch (this) {
-        Initial() => onInitial?.call() ?? orElse?.call(),
-        Loading() => onLoading?.call() ?? orElse?.call(),
-        Success() => onSuccess?.call(_value as S) ?? orElse?.call(),
-        Failure() => onFailure?.call(_failure as F) ?? orElse?.call(),
-      };
+  }) {
+    final state = this;
+
+    return switch (state) {
+      Initial() => onInitial?.call() ?? orElse?.call(),
+      Loading() => onLoading?.call() ?? orElse?.call(),
+      Success<F, S>() => onSuccess?.call(state._value) ?? orElse?.call(),
+      Failure<F, S>() => onFailure?.call(state._failure) ?? orElse?.call(),
+    };
+  }
 }
