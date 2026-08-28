@@ -50,3 +50,11 @@ typedef So<F, S> = FutureOr<Do<F, S>>;
 ///
 /// The type parameter [S] represents the success type.
 typedef SoException<S> = FutureOr<Do<Exception, S>>;
+
+typedef SoSync<F, S> = Do<F, S>;
+
+typedef SoAsync<F, S> = Future<Do<F, S>>;
+
+typedef SoExceptionSync<S> = Do<Exception, S>;
+
+typedef SoExceptionAsync<S> = Future<Do<Exception, S>>;

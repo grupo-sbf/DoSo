@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'impl/do_exception.dart';
 import 'impl/do_handler.dart';
 import 'so.dart';
 
@@ -10,7 +11,7 @@ abstract interface class Do<F, S> {
 
   const factory Do.success(S value) = Success<F, S>;
 
-  const factory Do.failure([F failure]) = Failure<F, S>;
+  const factory Do.failure(F failure) = Failure<F, S>;
 
   bool get isInitial;
 
@@ -144,8 +145,8 @@ abstract interface class Do<F, S> {
   /// If the [onTry] function throws an exception, it returns a [Failure]
   /// object.
   ///
-  /// The [onCatch] function can be used to handle the exception and return a
-  /// custom exception.
+  /// The [onCatch] function can be used to handle the error and return a
+  /// custom failure.
   ///
   /// The [onFinally] function is called after the [onTry] function
   /// completes, regardless of whether it was successful or not.
@@ -172,26 +173,38 @@ abstract interface class Do<F, S> {
   /// ```
   static So<F, S> tryCatch<F, S>({
     required FutureOr<S> Function() onTry,
-    F Function(Exception exception, StackTrace stackTrace)? onCatch,
+    F Function(Object error, StackTrace stackTrace)? onCatch,
     void Function()? onFinally,
   }) async {
     try {
       final result = await onTry();
       return Do.success(result);
-    } on Exception catch (e, s) {
-      if (onCatch == null) {
-        return Do.failure(Exception(e.toString()) as F);
+    } catch (error, stackTrace) {
+      if (onCatch != null) {
+        return Do.failure(onCatch(error, stackTrace));
       }
 
-      return Do.failure(onCatch(e, s));
-    } catch (e, s) {
-      if (onCatch == null) {
-        return Do.failure(Exception(e.toString()) as F);
-      }
-
-      return Do.failure(onCatch(Exception(e.toString()), s));
+      return Do.failure(_defaultFailure<F>(error));
     } finally {
       onFinally?.call();
     }
   }
+}
+
+F _defaultFailure<F>(Object error) {
+  if (error is F) {
+    return error as F;
+  }
+
+  final Object wrapped = Exception(error.toString());
+  if (wrapped is F) {
+    return wrapped as F;
+  }
+
+  throw DoException(
+    type: DoExceptionType.unsupportedFailureType,
+    message: 'Do.tryCatch caught $error but the failure type of this call '
+        'cannot hold it. Provide an onCatch callback that converts the '
+        'error into the expected failure type.',
+  );
 }

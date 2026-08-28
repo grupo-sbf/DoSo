@@ -1,5 +1,6 @@
 enum DoExceptionType {
   invalidState,
+  unsupportedFailureType,
 }
 
 class DoException implements Exception {
