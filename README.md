@@ -54,7 +54,7 @@ void main() async {
   // STATE HANDLING
   // Handle all Do states with when:
   result.when(
-    onInitial: () => print('Initial State'), // optional
+    onInitial: () => print('Initial State'), // optional, defaults to onLoading
     onLoading: () => print('Loading...'),
     onSuccess: (value) => print('Success: $value'),
     onFailure: (failure) => print('Failure: $failure'),
@@ -97,12 +97,29 @@ void main() async {
 Do.initial();            // Represents the initial state
 Do.loading();            // Represents a loading state
 Do.success(value);       // Represents a success with the associated value [S]
-Do.failure([failure]);   // Represents a failure with optional failure [F]
+Do.failure(failure);     // Represents a failure carrying the failure [F]
 
 // So
 So<F, S>                 // Represents a return statement with a failure of type F and a value of type S
 SoException<S>           // Represents a return statement with a fixed failure type of Exception and a value of type S
+
+SoSync<F, S>             // Always synchronous: Do<F, S>
+SoAsync<F, S>            // Always asynchronous: Future<Do<F, S>>
+SoExceptionSync<S>       // Always synchronous, fixed Exception failure
+SoExceptionAsync<S>      // Always asynchronous, fixed Exception failure
 ```
+
+Use `So`/`SoException` when the implementation may be either. Use the `Async`
+variants when it always awaits — they are real `Future`s, so `Future.wait`,
+`.timeout` and `.then` work without casting `FutureOr` down to `Future`.
+
+> **Migrating from 1.x**
+>
+> * `Do.failure()` requires its value. For a failure with no detail, use
+>   `Do<Exception?, T>` and pass `null`.
+> * `when` keeps `onInitial` optional; it now defaults to `onLoading`.
+> * `onCatch` in `tryCatch` receives an `Object` instead of an `Exception`.
+>   Callbacks with inferred parameter types are unaffected.
 
 ---
 
